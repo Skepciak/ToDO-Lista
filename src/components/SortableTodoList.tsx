@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 import { DndContext, closestCenter, KeyboardSensor, PointerSensor, useSensor, useSensors, DragEndEvent } from '@dnd-kit/core'
 import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrategy, useSortable } from '@dnd-kit/sortable'
 import { CSS } from '@dnd-kit/utilities'
@@ -78,19 +78,34 @@ function SortableTodoItem({ todo, categories }: { todo: Todo; categories: Catego
     )
 }
 
-export function SortableTodoList({ todos, categories }: SortableTodoListProps) {
-    const [items, setItems] = useState(todos)
-    const [isPending, startTransition] = useTransition()
-
+// Client-only wrapper to prevent hydration issues
+function DndWrapper({ children, onDragEnd }: { children: React.ReactNode; onDragEnd: (event: DragEndEvent) => void }) {
     const sensors = useSensors(
         useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     )
 
+    return (
+        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+            {children}
+        </DndContext>
+    )
+}
+
+export function SortableTodoList({ todos, categories }: SortableTodoListProps) {
+    const [items, setItems] = useState(todos)
+    const [isPending, startTransition] = useTransition()
+    const [mounted, setMounted] = useState(false)
+
+    // Only enable DnD after hydration
+    useEffect(() => {
+        setMounted(true)
+    }, [])
+
     // Sync with server data when todos change
-    if (todos.length !== items.length || !todos.every((t, i) => t.id === items[i]?.id)) {
+    useEffect(() => {
         setItems(todos)
-    }
+    }, [todos])
 
     function handleDragEnd(event: DragEndEvent) {
         const { active, over } = event
@@ -125,8 +140,39 @@ export function SortableTodoList({ todos, categories }: SortableTodoListProps) {
         )
     }
 
+    // Before hydration, render without DnD to prevent mismatch
+    if (!mounted) {
+        return (
+            <div className={`space-y-3 ${isPending ? 'opacity-70' : ''}`}>
+                {items.map((todo) => (
+                    <div key={todo.id} className="flex items-stretch gap-2">
+                        <div className="flex items-center justify-center px-1 text-gray-400 dark:text-gray-500">
+                            <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                                <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
+                            </svg>
+                        </div>
+                        <div className="flex-1">
+                            <TodoItem
+                                id={todo.id}
+                                title={todo.title}
+                                description={todo.description}
+                                completed={todo.completed}
+                                priority={todo.priority}
+                                dueDate={todo.dueDate}
+                                category={todo.category}
+                                categoryId={todo.categoryId}
+                                subtasks={todo.subtasks}
+                                categories={categories}
+                            />
+                        </div>
+                    </div>
+                ))}
+            </div>
+        )
+    }
+
     return (
-        <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={handleDragEnd}>
+        <DndWrapper onDragEnd={handleDragEnd}>
             <SortableContext items={items.map(t => t.id)} strategy={verticalListSortingStrategy}>
                 <div className={`space-y-3 ${isPending ? 'opacity-70' : ''}`}>
                     {items.map((todo) => (
@@ -134,6 +180,6 @@ export function SortableTodoList({ todos, categories }: SortableTodoListProps) {
                     ))}
                 </div>
             </SortableContext>
-        </DndContext>
+        </DndWrapper>
     )
 }

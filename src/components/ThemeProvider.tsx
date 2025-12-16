@@ -12,44 +12,60 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined)
 
+function getSystemTheme(): 'light' | 'dark' {
+    if (typeof window !== 'undefined') {
+        return window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light'
+    }
+    return 'light'
+}
+
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const [theme, setTheme] = useState<Theme>('system')
     const [resolvedTheme, setResolvedTheme] = useState<'light' | 'dark'>('light')
     const [mounted, setMounted] = useState(false)
 
+    // Initialize on mount
     useEffect(() => {
-        setMounted(true)
         const stored = localStorage.getItem('theme') as Theme | null
-        if (stored) {
+        if (stored && ['light', 'dark', 'system'].includes(stored)) {
             setTheme(stored)
         }
+        setMounted(true)
     }, [])
 
+    // Apply theme
     useEffect(() => {
         if (!mounted) return
 
         const root = document.documentElement
+        let newResolvedTheme: 'light' | 'dark'
 
         if (theme === 'system') {
-            const systemDark = window.matchMedia('(prefers-color-scheme: dark)').matches
-            setResolvedTheme(systemDark ? 'dark' : 'light')
-            root.classList.toggle('dark', systemDark)
+            newResolvedTheme = getSystemTheme()
         } else {
-            setResolvedTheme(theme)
-            root.classList.toggle('dark', theme === 'dark')
+            newResolvedTheme = theme
         }
 
+        // Remove both classes first, then add the correct one
+        root.classList.remove('light', 'dark')
+        root.classList.add(newResolvedTheme)
+
+        setResolvedTheme(newResolvedTheme)
         localStorage.setItem('theme', theme)
     }, [theme, mounted])
 
+    // Listen for system theme changes
     useEffect(() => {
         if (!mounted) return
 
         const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)')
-        const handleChange = (e: MediaQueryListEvent) => {
+
+        const handleChange = () => {
             if (theme === 'system') {
-                setResolvedTheme(e.matches ? 'dark' : 'light')
-                document.documentElement.classList.toggle('dark', e.matches)
+                const newResolvedTheme = getSystemTheme()
+                document.documentElement.classList.remove('light', 'dark')
+                document.documentElement.classList.add(newResolvedTheme)
+                setResolvedTheme(newResolvedTheme)
             }
         }
 
@@ -57,6 +73,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
         return () => mediaQuery.removeEventListener('change', handleChange)
     }, [theme, mounted])
 
+    // Prevent hydration mismatch
     if (!mounted) {
         return <>{children}</>
     }
