@@ -42,7 +42,7 @@ export function EditTodoModal({ todo, categories, onClose }: EditTodoModalProps)
         startTransition(async () => {
             const result = await updateTodo(todo.id, {
                 title,
-                description: description || null,
+                description: description || undefined,
                 priority,
                 dueDate: dueDate ? new Date(dueDate) : null,
                 categoryId
@@ -66,12 +66,12 @@ export function EditTodoModal({ todo, categories, onClose }: EditTodoModalProps)
     }
 
     return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm">
-            <div className="w-full max-w-lg bg-white rounded-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm" onClick={onClose}>
+            <div className="w-full max-w-lg bg-white dark:bg-gray-800 rounded-2xl shadow-2xl overflow-hidden" onClick={e => e.stopPropagation()}>
                 <div className="p-6">
                     <div className="flex items-center justify-between mb-6">
-                        <h2 className="text-xl font-bold text-gray-800">Edytuj zadanie</h2>
-                        <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 rounded-lg hover:bg-gray-100">
+                        <h2 className="text-xl font-bold text-gray-800 dark:text-gray-100">Edytuj zadanie</h2>
+                        <button onClick={onClose} className="p-2 text-gray-400 hover:text-gray-600 dark:hover:text-gray-300 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700">
                             <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                             </svg>
@@ -80,20 +80,20 @@ export function EditTodoModal({ todo, categories, onClose }: EditTodoModalProps)
 
                     <form onSubmit={handleSubmit} className="space-y-4">
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Tytuł</label>
-                            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} disabled={isPending} className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all" />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Tytuł</label>
+                            <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} disabled={isPending} className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none transition-all" />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Opis (opcjonalnie)</label>
-                            <textarea value={description} onChange={(e) => setDescription(e.target.value)} disabled={isPending} rows={3} className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all resize-none" placeholder="Dodaj szczegóły..." />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Opis (opcjonalnie)</label>
+                            <textarea value={description} onChange={(e) => setDescription(e.target.value)} disabled={isPending} rows={3} className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none transition-all resize-none" placeholder="Dodaj szczegóły..." />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Priorytet</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Priorytet</label>
                             <div className="flex gap-2">
                                 {(['high', 'medium', 'low'] as Priority[]).map((p) => (
-                                    <button key={p} type="button" onClick={() => setPriority(p)} className={`flex-1 py-2 rounded-lg font-medium transition-all ${priority === p ? (p === 'high' ? 'bg-red-100 text-red-700 ring-2 ring-red-300' : p === 'medium' ? 'bg-yellow-100 text-yellow-700 ring-2 ring-yellow-300' : 'bg-green-100 text-green-700 ring-2 ring-green-300') : 'bg-gray-100 text-gray-500 hover:bg-gray-200'}`}>
+                                    <button key={p} type="button" onClick={() => setPriority(p)} className={`flex-1 py-2 rounded-lg font-medium transition-all ${priority === p ? (p === 'high' ? 'bg-red-100 dark:bg-red-900/50 text-red-700 dark:text-red-300 ring-2 ring-red-300 dark:ring-red-700' : p === 'medium' ? 'bg-yellow-100 dark:bg-yellow-900/50 text-yellow-700 dark:text-yellow-300 ring-2 ring-yellow-300 dark:ring-yellow-700' : 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300 ring-2 ring-green-300 dark:ring-green-700') : 'bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-600'}`}>
                                         {p === 'high' ? 'Wysoki' : p === 'medium' ? 'Średni' : 'Niski'}
                                     </button>
                                 ))}
@@ -101,25 +101,25 @@ export function EditTodoModal({ todo, categories, onClose }: EditTodoModalProps)
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">Termin</label>
-                            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} disabled={isPending} className="w-full px-4 py-2 border-2 border-gray-200 rounded-xl focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 outline-none transition-all" />
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Termin</label>
+                            <input type="date" value={dueDate} onChange={(e) => setDueDate(e.target.value)} disabled={isPending} className="w-full px-4 py-2 border-2 border-gray-200 dark:border-gray-600 rounded-xl bg-white dark:bg-gray-700 text-gray-900 dark:text-gray-100 focus:border-indigo-500 focus:ring-2 focus:ring-indigo-100 dark:focus:ring-indigo-900 outline-none transition-all" />
                         </div>
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-2">Kategoria</label>
+                            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Kategoria</label>
                             <CategorySelect categories={categories} selectedId={categoryId} onChange={setCategoryId} />
                         </div>
 
                         {error && (
-                            <p className="text-red-500 text-sm">{error}</p>
+                            <p className="text-red-500 dark:text-red-400 text-sm">{error}</p>
                         )}
 
                         <div className="flex gap-3 pt-4">
-                            <button type="button" onClick={handleDelete} disabled={isPending} className="px-4 py-2 text-red-600 hover:bg-red-50 rounded-xl font-medium transition-all">
+                            <button type="button" onClick={handleDelete} disabled={isPending} className="px-4 py-2 text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/30 rounded-xl font-medium transition-all">
                                 Usuń
                             </button>
                             <div className="flex-1" />
-                            <button type="button" onClick={onClose} disabled={isPending} className="px-4 py-2 text-gray-600 hover:bg-gray-100 rounded-xl font-medium transition-all">
+                            <button type="button" onClick={onClose} disabled={isPending} className="px-4 py-2 text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-xl font-medium transition-all">
                                 Anuluj
                             </button>
                             <button type="submit" disabled={isPending} className="px-6 py-2 bg-gradient-to-r from-indigo-500 to-purple-600 text-white font-medium rounded-xl hover:from-indigo-600 hover:to-purple-700 disabled:opacity-50 transition-all">

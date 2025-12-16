@@ -8,17 +8,29 @@ body {
   font-family: var(--font-inter);
 }
 
+/* Dark mode base styles */
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  @apply bg-gray-900 text-gray-100;
+}
+
 /* Custom animations */
 @keyframes blob {
   0% {
     transform: translate(0px, 0px) scale(1);
   }
+
   33% {
     transform: translate(30px, -50px) scale(1.1);
   }
+
   66% {
     transform: translate(-20px, 20px) scale(0.9);
   }
+
   100% {
     transform: translate(0px, 0px) scale(1);
   }
@@ -49,21 +61,33 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #f1f5f9;
+  @apply bg-gray-100 dark:bg-gray-800;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #c7d2fe;
+  @apply bg-indigo-200 dark:bg-indigo-800;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #a5b4fc;
+  @apply bg-indigo-300 dark:bg-indigo-700;
 }
 
 /* Selection styling */
 ::selection {
-  background-color: rgb(199 210 254);
-  color: rgb(55 48 163);
+  @apply bg-indigo-200 text-indigo-900 dark:bg-indigo-800 dark:text-indigo-100;
+}
+
+/* Dark mode gradients */
+.dark .from-indigo-50 {
+  --tw-gradient-from: rgb(30 27 75);
+}
+
+.dark .to-purple-50 {
+  --tw-gradient-to: rgb(46 16 101);
+}
+
+.dark .via-white {
+  --tw-gradient-via: rgb(17 24 39);
 }

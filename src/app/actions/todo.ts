@@ -8,12 +8,13 @@ export type Priority = 'high' | 'medium' | 'low'
 
 // ============ TODO ACTIONS ============
 
-export async function getTodos(filter: FilterType = 'all', categoryId?: string) {
+export async function getTodos(filter: FilterType = 'all', categoryId?: string, searchQuery?: string) {
     const where: Record<string, unknown> = {}
 
     if (filter === 'active') where.completed = false
     if (filter === 'completed') where.completed = true
     if (categoryId) where.categoryId = categoryId
+    if (searchQuery) where.title = { contains: searchQuery }
 
     // Only get top-level todos (not subtasks)
     where.parentId = null
