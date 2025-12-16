@@ -6,7 +6,6 @@ import { SortableContext, sortableKeyboardCoordinates, verticalListSortingStrate
 import { CSS } from '@dnd-kit/utilities'
 import { reorderTodos } from '@/app/actions/todo'
 import { TodoItem } from './TodoItem'
-import type { Priority } from '@/app/actions/todo'
 
 interface Category {
     id: string
@@ -44,17 +43,37 @@ function SortableTodoItem({ todo, categories }: { todo: Todo; categories: Catego
         transform: CSS.Transform.toString(transform),
         transition,
         opacity: isDragging ? 0.5 : 1,
-        zIndex: isDragging ? 50 : 'auto'
+        zIndex: isDragging ? 50 : 'auto' as const
     }
 
     return (
-        <div ref={setNodeRef} style={style} className="relative">
-            <div {...attributes} {...listeners} className="absolute left-0 top-1/2 -translate-y-1/2 -translate-x-full pr-2 cursor-grab active:cursor-grabbing opacity-0 group-hover:opacity-100 transition-opacity">
-                <svg className="w-4 h-4 text-gray-400" fill="currentColor" viewBox="0 0 20 20">
+        <div ref={setNodeRef} style={style} className="flex items-stretch gap-2">
+            {/* Visible drag handle */}
+            <div
+                {...attributes}
+                {...listeners}
+                className="flex items-center justify-center px-1 cursor-grab active:cursor-grabbing text-gray-400 dark:text-gray-500 hover:text-indigo-500 dark:hover:text-indigo-400 transition-colors touch-none"
+                title="Przeciągnij aby zmienić kolejność"
+            >
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
                     <path d="M7 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 2zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 7 14zm6-8a2 2 0 1 0-.001-4.001A2 2 0 0 0 13 6zm0 2a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 8zm0 6a2 2 0 1 0 .001 4.001A2 2 0 0 0 13 14z" />
                 </svg>
             </div>
-            <TodoItem key={todo.id} id={todo.id} title={todo.title} description={todo.description} completed={todo.completed} priority={todo.priority} dueDate={todo.dueDate} category={todo.category} categoryId={todo.categoryId} subtasks={todo.subtasks} categories={categories} />
+            <div className="flex-1">
+                <TodoItem
+                    key={todo.id}
+                    id={todo.id}
+                    title={todo.title}
+                    description={todo.description}
+                    completed={todo.completed}
+                    priority={todo.priority}
+                    dueDate={todo.dueDate}
+                    category={todo.category}
+                    categoryId={todo.categoryId}
+                    subtasks={todo.subtasks}
+                    categories={categories}
+                />
+            </div>
         </div>
     )
 }
@@ -64,12 +83,12 @@ export function SortableTodoList({ todos, categories }: SortableTodoListProps) {
     const [isPending, startTransition] = useTransition()
 
     const sensors = useSensors(
-        useSensor(PointerSensor, { activationConstraint: { distance: 8 } }),
+        useSensor(PointerSensor, { activationConstraint: { distance: 5 } }),
         useSensor(KeyboardSensor, { coordinateGetter: sortableKeyboardCoordinates })
     )
 
-    // Sync with server data
-    if (JSON.stringify(todos.map(t => t.id)) !== JSON.stringify(items.map(t => t.id))) {
+    // Sync with server data when todos change
+    if (todos.length !== items.length || !todos.every((t, i) => t.id === items[i]?.id)) {
         setItems(todos)
     }
 
