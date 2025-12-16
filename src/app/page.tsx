@@ -1,10 +1,13 @@
 import { Suspense } from 'react'
+import Link from 'next/link'
 import { getTodos, getCategories, type FilterType } from '@/app/actions/todo'
 import { AddTodoForm } from '@/components/AddTodoForm'
 import { SortableTodoList } from '@/components/SortableTodoList'
 import { FilterTabs } from '@/components/FilterTabs'
 import { SearchInput } from '@/components/SearchInput'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import { ExportButtons } from '@/components/ExportButtons'
+import { NotificationPermission } from '@/components/NotificationPermission'
 
 interface PageProps {
   searchParams: Promise<{ filter?: FilterType; q?: string }>
@@ -33,7 +36,10 @@ export default async function Home({ searchParams }: PageProps) {
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-8 sm:py-12">
         <header className="text-center mb-8 sm:mb-12">
-          <div className="flex justify-end mb-4">
+          <div className="flex justify-between items-center mb-4">
+            <Link href="/stats" className="px-3 py-2 text-sm font-medium rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+              📊 Statystyki
+            </Link>
             <ThemeToggle />
           </div>
           <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-xl shadow-indigo-500/30">
@@ -89,8 +95,12 @@ export default async function Home({ searchParams }: PageProps) {
           </section>
         </div>
 
-        <footer className="text-center mt-8 text-sm text-gray-400 dark:text-gray-500">
-          <p>Zbudowane z ❤️ przy użyciu Next.js i Prisma</p>
+        <footer className="mt-8 space-y-4">
+          <div className="flex flex-wrap justify-center items-center gap-4">
+            <ExportButtons />
+            <NotificationPermission />
+          </div>
+          <p className="text-center text-sm text-gray-400 dark:text-gray-500">Zbudowane z ❤️ przy użyciu Next.js i Prisma</p>
         </footer>
       </div>
     </main>
