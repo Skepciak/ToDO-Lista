@@ -11,9 +11,30 @@ datasource db {
 }
 
 model Todo {
-  id        String   @id @default(cuid())
-  title     String
-  completed Boolean  @default(false)
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  id          String    @id @default(cuid())
+  title       String
+  description String?
+  completed   Boolean   @default(false)
+  priority    String    @default("medium") // high, medium, low
+  dueDate     DateTime?
+  order       Int       @default(0)
+  
+  // Subtasks relation
+  parentId    String?
+  parent      Todo?     @relation("Subtasks", fields: [parentId], references: [id], onDelete: Cascade)
+  subtasks    Todo[]    @relation("Subtasks")
+  
+  // Category relation
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id])
+  
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Category {
+  id    String @id @default(cuid())
+  name  String
+  color String @default("#6366f1")
+  todos Todo[]
 }
