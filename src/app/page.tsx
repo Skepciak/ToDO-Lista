@@ -8,6 +8,7 @@ import { SearchInput } from '@/components/SearchInput'
 import { ThemeToggle } from '@/components/ThemeToggle'
 import { ExportButtons } from '@/components/ExportButtons'
 import { NotificationPermission } from '@/components/NotificationPermission'
+import { CalendarExport } from '@/components/CalendarExport'
 
 interface PageProps {
   searchParams: Promise<{ filter?: FilterType; q?: string }>
@@ -98,6 +99,7 @@ export default async function Home({ searchParams }: PageProps) {
         <footer className="mt-8 space-y-4">
           <div className="flex flex-wrap justify-center items-center gap-4">
             <ExportButtons />
+            <CalendarExport />
             <NotificationPermission />
           </div>
           <p className="text-center text-sm text-gray-400 dark:text-gray-500">Zbudowane z ❤️ przy użyciu Next.js i Prisma</p>
