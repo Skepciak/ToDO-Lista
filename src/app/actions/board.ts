@@ -27,6 +27,30 @@ export async function getBoards() {
     return boards
 }
 
+// Get pending invitations for current user
+export async function getPendingInvites() {
+    const session = await auth()
+    if (!session?.user?.email) return []
+
+    const invites = await prisma.boardInvite.findMany({
+        where: {
+            email: session.user.email,
+            usedAt: null,
+            expiresAt: { gt: new Date() }
+        },
+        include: {
+            board: {
+                include: {
+                    owner: { select: { name: true, email: true } }
+                }
+            }
+        },
+        orderBy: { createdAt: 'desc' }
+    })
+
+    return invites
+}
+
 // Get single board with todos
 export async function getBoard(boardId: string) {
     const session = await auth()

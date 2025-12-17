@@ -1,8 +1,9 @@
 import { auth } from '@/auth'
 import { redirect } from 'next/navigation'
 import Link from 'next/link'
-import { getBoards } from '@/app/actions/board'
+import { getBoards, getPendingInvites } from '@/app/actions/board'
 import { CreateBoardForm } from '@/components/CreateBoardForm'
+import { AcceptInviteButton } from '@/components/AcceptInviteButton'
 
 export default async function BoardsPage() {
     const session = await auth()
@@ -11,7 +12,10 @@ export default async function BoardsPage() {
         redirect('/login?callbackUrl=/boards')
     }
 
-    const boards = await getBoards()
+    const [boards, pendingInvites] = await Promise.all([
+        getBoards(),
+        getPendingInvites()
+    ])
 
     return (
         <main className="min-h-screen bg-gradient-to-br from-indigo-50 via-white to-purple-50 dark:from-gray-900 dark:via-gray-900 dark:to-gray-900">
@@ -27,6 +31,36 @@ export default async function BoardsPage() {
                         ← Powrót
                     </Link>
                 </div>
+
+                {/* Pending invitations */}
+                {pendingInvites.length > 0 && (
+                    <div className="bg-gradient-to-r from-amber-50 to-orange-50 dark:from-amber-900/20 dark:to-orange-900/20 rounded-2xl p-6 mb-8 border border-amber-200 dark:border-amber-800/50">
+                        <h2 className="text-lg font-semibold text-amber-800 dark:text-amber-200 mb-4 flex items-center gap-2">
+                            ✉️ Oczekujące zaproszenia ({pendingInvites.length})
+                        </h2>
+                        <div className="space-y-3">
+                            {pendingInvites.map((invite) => (
+                                <div key={invite.id} className="flex items-center justify-between gap-4 p-4 bg-white/80 dark:bg-gray-800/80 rounded-xl">
+                                    <div className="flex items-center gap-3 flex-1 min-w-0">
+                                        <div
+                                            className="w-10 h-10 rounded-xl flex items-center justify-center text-white font-bold"
+                                            style={{ backgroundColor: invite.board.color }}
+                                        >
+                                            {invite.board.name[0].toUpperCase()}
+                                        </div>
+                                        <div className="flex-1 min-w-0">
+                                            <p className="font-medium text-gray-800 dark:text-gray-200 truncate">{invite.board.name}</p>
+                                            <p className="text-sm text-gray-500 dark:text-gray-400">
+                                                Zaproszenie od {invite.board.owner.name || invite.board.owner.email}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <AcceptInviteButton token={invite.token} />
+                                </div>
+                            ))}
+                        </div>
+                    </div>
+                )}
 
                 {/* Create new board */}
                 <div className="bg-white/60 dark:bg-gray-800/60 backdrop-blur-lg rounded-2xl p-6 mb-8 border border-white/20 dark:border-gray-700/50">
