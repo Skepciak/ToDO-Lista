@@ -9,6 +9,8 @@ import { ThemeToggle } from '@/components/ThemeToggle'
 import { ExportButtons } from '@/components/ExportButtons'
 import { NotificationPermission } from '@/components/NotificationPermission'
 import { CalendarExport } from '@/components/CalendarExport'
+import { AuthButtons } from '@/components/AuthButtons'
+import { GoogleCalendarSync } from '@/components/GoogleCalendarSync'
 
 interface PageProps {
   searchParams: Promise<{ filter?: FilterType; q?: string }>
@@ -37,11 +39,20 @@ export default async function Home({ searchParams }: PageProps) {
 
       <div className="relative z-10 max-w-2xl mx-auto px-4 py-8 sm:py-12">
         <header className="text-center mb-8 sm:mb-12">
-          <div className="flex justify-between items-center mb-4">
-            <Link href="/stats" className="px-3 py-2 text-sm font-medium rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
-              📊 Statystyki
-            </Link>
-            <ThemeToggle />
+          {/* Top bar with auth and controls */}
+          <div className="flex justify-between items-center mb-4 flex-wrap gap-2">
+            <div className="flex items-center gap-2">
+              <Link href="/stats" className="px-3 py-2 text-sm font-medium rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+                📊 Statystyki
+              </Link>
+              <Link href="/boards" className="px-3 py-2 text-sm font-medium rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+                📋 Tablice
+              </Link>
+            </div>
+            <div className="flex items-center gap-2">
+              <AuthButtons />
+              <ThemeToggle />
+            </div>
           </div>
           <div className="inline-flex items-center justify-center w-16 h-16 mb-4 rounded-2xl bg-gradient-to-br from-indigo-500 to-purple-600 shadow-xl shadow-indigo-500/30">
             <svg className="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
@@ -100,6 +111,7 @@ export default async function Home({ searchParams }: PageProps) {
           <div className="flex flex-wrap justify-center items-center gap-4">
             <ExportButtons />
             <CalendarExport />
+            <GoogleCalendarSync />
             <NotificationPermission />
           </div>
           <p className="text-center text-sm text-gray-400 dark:text-gray-500">Zbudowane z ❤️ przy użyciu Next.js i Prisma</p>
