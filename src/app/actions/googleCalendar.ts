@@ -25,21 +25,27 @@ export async function syncWithGoogleCalendar(): Promise<{ success: boolean; mess
         }
     })
 
+    console.log('[Calendar] User ID:', session.user.id)
+    console.log('[Calendar] Account found:', !!account)
+    console.log('[Calendar] Access token exists:', !!account?.access_token)
+
     if (!account?.access_token) {
-        return { success: false, error: 'Połącz konto z Google (zaloguj przez Google)' }
+        return { success: false, error: 'Połącz konto z Google (wyloguj i zaloguj ponownie przez Google)' }
     }
 
-    // Get todos with due dates that need syncing
+    // Get ALL todos with due dates (not filtering by userId to catch todos created before auth was added)
     const todos = await prisma.todo.findMany({
         where: {
-            userId: session.user.id,
             dueDate: { not: null },
-            completed: false
+            completed: false,
+            parentId: null // Only main todos, not subtasks
         }
     })
 
+    console.log('[Calendar] Found todos with due dates:', todos.length)
+
     if (todos.length === 0) {
-        return { success: true, message: 'Brak zadań do synchronizacji' }
+        return { success: true, message: 'Brak zadań z terminem do synchronizacji' }
     }
 
     let synced = 0
@@ -62,63 +68,49 @@ export async function syncWithGoogleCalendar(): Promise<{ success: boolean; mess
         }
 
         try {
-            let response: Response
+            console.log('[Calendar] Syncing:', todo.title)
 
-            if (todo.googleEventId) {
-                // Update existing event
-                response = await fetch(
-                    `https://www.googleapis.com/calendar/v3/calendars/primary/events/${todo.googleEventId}`,
-                    {
-                        method: 'PUT',
-                        headers: {
-                            Authorization: `Bearer ${account.access_token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(event)
-                    }
-                )
-            } else {
-                // Create new event
-                response = await fetch(
-                    'https://www.googleapis.com/calendar/v3/calendars/primary/events',
-                    {
-                        method: 'POST',
-                        headers: {
-                            Authorization: `Bearer ${account.access_token}`,
-                            'Content-Type': 'application/json'
-                        },
-                        body: JSON.stringify(event)
-                    }
-                )
-            }
+            // Always create new event (simpler than tracking googleEventId)
+            const response = await fetch(
+                'https://www.googleapis.com/calendar/v3/calendars/primary/events',
+                {
+                    method: 'POST',
+                    headers: {
+                        Authorization: `Bearer ${account.access_token}`,
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(event)
+                }
+            )
+
+            const responseText = await response.text()
+            console.log('[Calendar] API response status:', response.status)
 
             if (response.ok) {
-                const data = await response.json()
+                synced++
+                console.log('[Calendar] Synced:', todo.title)
+            } else {
+                console.error('[Calendar] API error:', responseText)
 
-                // Save Google Event ID for future updates
-                if (!todo.googleEventId) {
-                    await prisma.todo.update({
-                        where: { id: todo.id },
-                        data: { googleEventId: data.id }
-                    })
+                // Check if token expired
+                if (response.status === 401) {
+                    return { success: false, error: 'Token wygasł - wyloguj i zaloguj ponownie przez Google' }
                 }
 
-                synced++
-            } else {
-                console.error('Google Calendar API error:', await response.text())
                 errors++
             }
         } catch (error) {
-            console.error('Sync error:', error)
+            console.error('[Calendar] Sync error:', error)
             errors++
         }
     }
 
+    if (errors > 0 && synced === 0) {
+        return { success: false, error: `Błąd synchronizacji (${errors} błędów). Sprawdź czy Google Calendar API jest włączone.` }
+    }
+
     if (errors > 0) {
-        return {
-            success: true,
-            message: `Zsynchronizowano ${synced}/${todos.length} (${errors} błędów)`
-        }
+        return { success: true, message: `Zsynchronizowano ${synced}/${todos.length} (${errors} błędów)` }
     }
 
     return { success: true, message: `Zsynchronizowano ${synced} zadań` }

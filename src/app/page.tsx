@@ -45,6 +45,9 @@ export default async function Home({ searchParams }: PageProps) {
               <Link href="/stats" className="px-3 py-2 text-sm font-medium rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
                 📊 Statystyki
               </Link>
+              <Link href="/boards" className="px-3 py-2 text-sm font-medium rounded-xl bg-white/80 dark:bg-gray-800/80 border border-gray-200 dark:border-gray-700 text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all">
+                📋 Tablice
+              </Link>
             </div>
             <div className="flex items-center gap-2">
               <AuthButtons />

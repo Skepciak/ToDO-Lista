@@ -24,6 +24,10 @@ model User {
   sessions      Session[]
   todos         Todo[]
   
+  // Board relations
+  ownedBoards   Board[]        @relation("BoardOwner")
+  boardMembers  BoardMember[]
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
 }
@@ -63,6 +67,62 @@ model VerificationToken {
   @@unique([identifier, token])
 }
 
+// Board (Tablica) - like Trello boards
+model Board {
+  id          String   @id @default(cuid())
+  name        String
+  description String?
+  color       String   @default("#6366f1")
+  
+  // Owner
+  ownerId     String
+  owner       User     @relation("BoardOwner", fields: [ownerId], references: [id], onDelete: Cascade)
+  
+  // Members
+  members     BoardMember[]
+  
+  // Invitations
+  invites     BoardInvite[]
+  
+  // Todos on this board
+  todos       Todo[]
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+}
+
+// Board membership
+model BoardMember {
+  id       String @id @default(cuid())
+  role     String @default("member") // owner | admin | member | viewer
+  
+  boardId  String
+  board    Board  @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  
+  userId   String
+  user     User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  joinedAt DateTime @default(now())
+  
+  @@unique([boardId, userId])
+}
+
+// Email invitations to board
+model BoardInvite {
+  id        String   @id @default(cuid())
+  email     String
+  role      String   @default("member")
+  token     String   @unique @default(cuid())
+  
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  
+  expiresAt DateTime
+  usedAt    DateTime?
+  
+  createdAt DateTime @default(now())
+}
+
 // Todo models
 model Todo {
   id          String    @id @default(cuid())
@@ -73,9 +133,13 @@ model Todo {
   dueDate     DateTime?
   order       Int       @default(0)
   
-  // User relation
+  // User relation (personal todos)
   userId      String?
   user        User?     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Board relation (shared todos)
+  boardId     String?
+  board       Board?    @relation(fields: [boardId], references: [id], onDelete: Cascade)
   
   // Subtasks relation
   parentId    String?
